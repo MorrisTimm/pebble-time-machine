@@ -1,10 +1,10 @@
 #include <pebble.h>
-#include "pebble-fast-tick-timer.h"
+#include "pebble-time-machine.h"
 
 #define HANDLE 0xFA57
 
 static TickHandler s_handler = NULL;
-static FastTickHandler s_fast_handler = NULL;
+static TimeMachineTickHandler s_tick_handler = NULL;
 static void* s_context = NULL;
 static int s_interval = 0;
 static time_t s_start;
@@ -12,12 +12,12 @@ static time_t s_end;
 static time_t s_time;
 static struct tm s_last_time;
 static AppTimer* s_timer = NULL;
-static FastTickTimerUnit s_unit;
+static TimeMachineUnit s_unit;
 static TimeUnits s_units;
 
 static int prv_number_of_days_in_month(int month) {
   switch(month) {
-    case  1: return 28;
+    case  1: return 28; // ignore leap years
     case  3:
     case  5:
     case  8:
@@ -54,8 +54,8 @@ static void prv_timer_callback(void* tick) {
     if(s_handler) {
       s_handler(tick_time, changed);
     }
-    if(s_fast_handler) {
-      s_fast_handler(tick_time, changed, s_context);
+    if(s_tick_handler) {
+      s_tick_handler(tick_time, changed, s_context);
     }
   }
   s_last_time = *tick_time;
@@ -63,13 +63,13 @@ static void prv_timer_callback(void* tick) {
     s_time = s_start;
   } else {
     switch(s_unit) {
-      case FAST_TICK_TIMER_SECONDS: ++s_time; break;
-      case FAST_TICK_TIMER_MINUTES: s_time += SECONDS_PER_MINUTE; break;
-      case FAST_TICK_TIMER_HOURS:   s_time += SECONDS_PER_HOUR; break;
-      case FAST_TICK_TIMER_DAYS:    s_time += SECONDS_PER_DAY; break;
-      case FAST_TICK_TIMER_WEEKS:   s_time += SECONDS_PER_DAY*7; break;
-      case FAST_TICK_TIMER_MONTHS:  s_time += SECONDS_PER_DAY*prv_number_of_days_in_month(tick_time->tm_mon); break;
-      case FAST_TICK_TIMER_YEARS:   s_time += SECONDS_PER_DAY*365; break;
+      case TIME_MACHINE_SECONDS: ++s_time; break;
+      case TIME_MACHINE_MINUTES: s_time += SECONDS_PER_MINUTE; break;
+      case TIME_MACHINE_HOURS:   s_time += SECONDS_PER_HOUR; break;
+      case TIME_MACHINE_DAYS:    s_time += SECONDS_PER_DAY; break;
+      case TIME_MACHINE_WEEKS:   s_time += SECONDS_PER_DAY*7; break;
+      case TIME_MACHINE_MONTHS:  s_time += SECONDS_PER_DAY*prv_number_of_days_in_month(tick_time->tm_mon); break;
+      case TIME_MACHINE_YEARS:   s_time += SECONDS_PER_DAY*365; break; // ignore leap years
     }
   }
   if(s_interval) {
@@ -77,7 +77,7 @@ static void prv_timer_callback(void* tick) {
   }
 }
 
-void fast_tick_timer_init(struct tm* start, FastTickTimerUnit unit, int interval) {
+void time_machine_init(struct tm* start, TimeMachineUnit unit, int interval) {
   if(0 == start) {
     time_t now = time(NULL);
     start = localtime(&now);
@@ -88,17 +88,17 @@ void fast_tick_timer_init(struct tm* start, FastTickTimerUnit unit, int interval
   s_interval = interval;
 }
 
-void fast_tick_timer_init_loop(struct tm* start, struct tm* end, FastTickTimerUnit unit, int interval) {
-  fast_tick_timer_init(start, unit, interval);
+void time_machine_init_loop(struct tm* start, struct tm* end, TimeMachineUnit unit, int interval) {
+  time_machine_init(start, unit, interval);
   if(end) {
     s_end = mktime(end);
   }
 }
 
-void fast_tick_timer_service_subscribe(TimeUnits units, TickHandler handler) {
+void time_machine_tick_timer_service_subscribe(TimeUnits units, TickHandler handler) {
   s_units = units;
   s_handler = handler;
-  s_fast_handler = NULL;
+  s_tick_handler = NULL;
   s_context = NULL;
   if(s_timer) {
     app_timer_cancel(s_timer);
@@ -106,24 +106,24 @@ void fast_tick_timer_service_subscribe(TimeUnits units, TickHandler handler) {
   s_timer = app_timer_register(10, prv_timer_callback, NULL);
 }
 
-void fast_tick_timer_service_unsubscribe() {
+void time_machine_tick_timer_service_unsubscribe() {
   if(s_timer) {
     app_timer_cancel(s_timer);
   }
 }
 
-int fast_events_tick_timer_service_subscribe(TimeUnits units, TickHandler handler) {
-  fast_tick_timer_service_subscribe(units, handler);
+int time_machine_events_tick_timer_service_subscribe(TimeUnits units, TickHandler handler) {
+  time_machine_tick_timer_service_subscribe(units, handler);
   return HANDLE;
 }
 
-int fast_events_tick_timer_service_subscribe_context(TimeUnits units, FastTickHandler handler, void *context) {
-  fast_tick_timer_service_subscribe(units, NULL);
-  s_fast_handler = handler;
+int time_machine_events_tick_timer_service_subscribe_context(TimeUnits units, TimeMachineTickHandler handler, void *context) {
+  time_machine_tick_timer_service_subscribe(units, NULL);
+  s_tick_handler = handler;
   s_context = context;
   return HANDLE;
 }
 
-void fast_events_tick_timer_service_unsubscribe(int handle) {
-  fast_tick_timer_service_unsubscribe();
+void time_machine_events_tick_timer_service_unsubscribe(int handle) {
+  time_machine_tick_timer_service_unsubscribe();
 }
