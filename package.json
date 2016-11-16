@@ -1,9 +1,11 @@
 {
   "name": "pebble-time-machine",
-  "author": "Morris",
+  "author": "Morris Timm <pebble@timm.tc>",
   "version": "1.0.0",
   "files": ["dist.zip"],
   "keywords": ["pebble-package"],
+  "description": "A Pebble TickTimerService replacement for testing transitions and animations more quickly by speeding up the passage of time.",
+  "repository": "MorrisTimm/pebble-time-machine",
   "dependencies": {},
   "pebble": {
     "projectType": "package",
