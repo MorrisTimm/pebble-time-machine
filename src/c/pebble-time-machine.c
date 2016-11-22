@@ -50,7 +50,7 @@ static void prv_timer_callback(void* tick) {
       changed |= MINUTE_UNIT | HOUR_UNIT | DAY_UNIT | MONTH_UNIT | YEAR_UNIT;
     }
   }
-  if(s_units & changed) {
+  if(s_units & changed || 0 == changed) {
     if(s_handler) {
       s_handler(tick_time, changed);
     }
@@ -78,7 +78,7 @@ static void prv_timer_callback(void* tick) {
 }
 
 void time_machine_init(struct tm* start, TimeMachineUnit unit, int interval) {
-  if(0 == start) {
+  if(NULL == start) {
     time_t now = time(NULL);
     start = localtime(&now);
   }
@@ -93,6 +93,12 @@ void time_machine_init_loop(struct tm* start, struct tm* end, TimeMachineUnit un
   if(end) {
     s_end = mktime(end);
   }
+}
+
+struct tm * time_machine_get_time() {
+  static struct tm external_time;
+  external_time = s_last_time;
+  return &external_time;
 }
 
 void time_machine_tick_timer_service_subscribe(TimeUnits units, TickHandler handler) {

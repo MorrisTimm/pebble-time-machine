@@ -31,6 +31,7 @@ You can use the `TIME_MACHINE` define to determine whether or not TimeMachine is
 
     void time_machine_init(struct tm* start, TimeMachineUnit unit, int interval);
     void time_machine_init_loop(struct tm* start, struct tm* end, TimeMachineUnit unit, int interval);
+    struct tm * time_machine_get_time();
 
     void time_machine_tick_timer_service_subscribe(TimeUnits units, TickHandler handler);
     void time_machine_tick_timer_service_unsubscribe();
