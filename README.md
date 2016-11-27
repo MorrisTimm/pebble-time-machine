@@ -1,7 +1,7 @@
 # Pebble Time Machine
 A Pebble TickTimerService replacement for testing transitions and animations more quickly by speeding up the passage of time.
 
-I found that I needed something like this for testing in every watchface that has animations or unusual ways to show the time. So I made a package out of it.
+I found that I needed something like this for testing in every watchface that has animations or unusual ways to show the time. So I made a package out of it, from https://www.npmjs.com/package/pebble-time-machine.
 
 To use the TimeMachine you have to call one of the init functions to configure the start time, which unit increase you want to accelerate and the interval how quickly you want this to happen.
 
